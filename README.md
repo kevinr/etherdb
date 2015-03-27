@@ -1,3 +1,3 @@
 lightweight online spreadsheet like database editor
 
-currently uses web.py, handsontable, and sqlite
+currently uses webob, handsontable, and sqlite
