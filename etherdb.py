@@ -15,6 +15,7 @@ log = getLogger('etherdb')
 
 class EtherDBServer:
     def __init__(self):
+        log.debug('opening the database')
         self.conn = sqlite3.connect('test.db')
     def do_request(self, req):
         name = req.path_info
@@ -43,20 +44,36 @@ class EtherDBServer:
             return Response(body=body, content_length=len(body), content_type=content_type)
 
         elif re.search('^/json/(?:load|save).json$', name):
-            if req.method == 'GET':
-                cursor = self.conn.cursor()
-                cursor.execute('select * from test')
+            cursor = self.conn.cursor()
+            cursor.execute('select * from test')
 
-                rowdata = [[x[0] for x in cursor.description]]
+            cols = [x[0] for x in cursor.description]
+
+            # filter __id column
+            id_idx = cols.index('__id')
+            cols = cols[:id_idx] + cols[id_idx+1:]
+
+            if req.method == 'GET':
+                rowdata = [cols]
 
                 for row in cursor:
-                    rowdata.append(row)
+                    rowdata.append(row[:id_idx] + row[id_idx+1:])
                 
                 body = json.dumps({'data': rowdata})
                 return Response(body=body, content_length=len(body), content_type='application/json')
             elif req.method == 'POST':
                 log.debug('POST body: %s', req.body)
                 parsed = json.loads(req.body)
+
+                if parsed['type'] == 'change':
+                    for change in parsed['data']:
+                        # not a column header update
+                        if change[0] != 0:
+                            row_id = change[0] + 1
+                            cmd = "update test set %s=%s where __id=%d;" % (cols[change[1]], change[3], row_id)
+                            log.debug(cmd)
+                            cursor.execute(cmd)
+                            self.conn.commit()
                 
                 body = "{ \"result\": \"ok\" }"
                 return Response(body=body, content_length=len(body), content_type='application/json')
