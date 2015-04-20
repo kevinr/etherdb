@@ -49,7 +49,13 @@ class EtherDBServer:
             cursor = self.conn.cursor()
             cursor.execute('select rowid, * from test')
 
-            cols = [x[0] for x in cursor.description]
+            cols = tuple([x[0] for x in cursor.description])
+
+            typecursor = self.conn.cursor()
+            typecmd = 'select ' + ', '.join(['typeof({0})'.format(x) for x in cols]) + ' from test limit 1'
+            typecursor.execute(typecmd)
+            coltypes = typecursor.fetchone()
+            print(coltypes)
 
             if req.method == 'GET':
                 rowdata = [cols]
@@ -67,8 +73,11 @@ class EtherDBServer:
                     for change in parsed['data']:
                         # not a column header update
                         if change[0] != 0:
-                            row_id = change[0] + 1
-                            cmd = "update test set %s=%s where rowid=%d;" % (cols[change[1]], change[3], row_id)
+                            rowid = change[0]
+                            if re.search('char|text|clob|blob', coltypes[change[1]], re.IGNORECASE):
+                              cmd = "update test set %s=\"%s\" where rowid=%d;" % (cols[change[1]], change[3], rowid)
+                            else:
+                              cmd = "update test set %s=%s where rowid=%d;" % (cols[change[1]], change[3], rowid)
                             log.debug(cmd)
                             cursor.execute(cmd)
                             self.conn.commit()
