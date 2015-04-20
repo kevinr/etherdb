@@ -3,6 +3,8 @@
 import sys, json, re
 from logging import getLogger, basicConfig
 
+import six
+
 from webob import Request, Response
 from webob.exc import HTTPException, HTTPNotFound, HTTPInternalServerError, HTTPSeeOther, HTTPMethodNotAllowed
 
@@ -41,7 +43,7 @@ class EtherDBServer:
 
             f = open(name[1:])
             body = f.read()
-            return Response(body=body, content_length=len(body), content_type=content_type)
+            return Response(body=body, content_length=len(body), content_type=content_type, charset='utf-8')
 
         elif re.search('^/json/(?:load|save).json$', name):
             cursor = self.conn.cursor()
@@ -60,10 +62,10 @@ class EtherDBServer:
                     rowdata.append(row[:id_idx] + row[id_idx+1:])
                 
                 body = json.dumps({'data': rowdata})
-                return Response(body=body, content_length=len(body), content_type='application/json')
+                return Response(body=body, content_length=len(body), content_type='application/json', charset='utf-8')
             elif req.method == 'POST':
                 log.debug('POST body: %s', req.body)
-                parsed = json.loads(req.body)
+                parsed = json.loads(six.text_type(req.body, 'utf-8'))
 
                 if parsed['type'] == 'change':
                     for change in parsed['data']:
@@ -76,7 +78,7 @@ class EtherDBServer:
                             self.conn.commit()
                 
                 body = "{ \"result\": \"ok\" }"
-                return Response(body=body, content_length=len(body), content_type='application/json')
+                return Response(body=body, content_length=len(body), content_type='application/json', charset='utf-8')
             else:
                 raise HTTPMethodNotAllowed
 
