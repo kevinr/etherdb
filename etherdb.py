@@ -51,15 +51,11 @@ class EtherDBServer:
 
             cols = [x[0] for x in cursor.description]
 
-            # filter rowid column
-            id_idx = cols.index('rowid')
-            cols = cols[:id_idx] + cols[id_idx+1:]
-
             if req.method == 'GET':
                 rowdata = [cols]
 
                 for row in cursor:
-                    rowdata.append(row[:id_idx] + row[id_idx+1:])
+                    rowdata.append(row)
                 
                 body = json.dumps({'data': rowdata})
                 return Response(body=body, content_length=len(body), content_type='application/json', charset='utf-8')
