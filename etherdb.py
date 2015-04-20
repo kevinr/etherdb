@@ -95,7 +95,5 @@ def do_request(environ, start_response):
         raise
 
 if __name__ == "__main__":
-    from paste import httpserver
-    from paste.evalexception import EvalException
-    do_request = EvalException(do_request)
-    httpserver.serve(do_request, host='127.0.0.1', port=8080).socket.close()
+    from waitress import serve
+    serve(do_request, host='127.0.0.1', port=8080)
