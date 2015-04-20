@@ -88,7 +88,7 @@ def do_request(environ, start_response):
     server = EtherDBServer()
     try:
         return server.do_request(req)(environ, start_response)
-    except HTTPException, err:
+    except HTTPException as err:
         return err(environ, start_response)
     except:
         log.exception('at top level')
