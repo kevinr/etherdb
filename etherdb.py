@@ -45,12 +45,12 @@ class EtherDBServer:
 
         elif re.search('^/json/(?:load|save).json$', name):
             cursor = self.conn.cursor()
-            cursor.execute('select * from test')
+            cursor.execute('select rowid, * from test')
 
             cols = [x[0] for x in cursor.description]
 
-            # filter __id column
-            id_idx = cols.index('__id')
+            # filter rowid column
+            id_idx = cols.index('rowid')
             cols = cols[:id_idx] + cols[id_idx+1:]
 
             if req.method == 'GET':
@@ -70,7 +70,7 @@ class EtherDBServer:
                         # not a column header update
                         if change[0] != 0:
                             row_id = change[0] + 1
-                            cmd = "update test set %s=%s where __id=%d;" % (cols[change[1]], change[3], row_id)
+                            cmd = "update test set %s=%s where rowid=%d;" % (cols[change[1]], change[3], row_id)
                             log.debug(cmd)
                             cursor.execute(cmd)
                             self.conn.commit()
