@@ -17,9 +17,9 @@
           },
           container = $('example1'),
           exampleConsole = $('example1console'),
-          autosave = $('autosave'),
-          load = $('load'),
-          save = $('save'),
+          autosave_checkbox = $('autosave'),
+          load_button = $('load'),
+          save_button = $('save'),
           autosaveNotification,
           hot;
 
@@ -34,7 +34,7 @@
             if (source === 'loadData') {
               return; //don't save this change
             }
-            if (!autosave.checked) {
+            if (!autosave_checkbox.checked) {
               return;
             }
             clearTimeout(autosaveNotification);
@@ -47,7 +47,7 @@
           }
         });
 
-        _load = function() {
+        load = function() {
           ajax('json/load.json', 'GET', '', function(res) {
             var data = JSON.parse(res.response);
 
@@ -56,9 +56,9 @@
           });
         };
 
-        Handsontable.Dom.addEvent(load, 'click', _load);
+        Handsontable.Dom.addEvent(load_button, 'click', load);
 
-        Handsontable.Dom.addEvent(save, 'click', function() {
+        Handsontable.Dom.addEvent(save_button, 'click', function() {
           // save all cell's data
           ajax('json/save.json', 'POST', JSON.stringify({type: 'full', data: hot.getData()}), function (res) {
             var response = JSON.parse(res.response);
@@ -72,8 +72,8 @@
           });
         });
 
-        Handsontable.Dom.addEvent(autosave, 'click', function() {
-          if (autosave.checked) {
+        Handsontable.Dom.addEvent(autosave_checkbox, 'click', function() {
+          if (autosave_checkbox.checked) {
             exampleConsole.innerText = 'Changes will be autosaved';
           }
           else {
@@ -81,8 +81,8 @@
           }
         });
 
-        // and call _load() to start for good measure
-        _load();
+        // and call load() to start for good measure
+        load();
       }
     </script>
 
