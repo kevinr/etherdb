@@ -23,6 +23,15 @@
           autosaveNotification,
           hot;
 
+        var calculateSize = function() {
+          var offset = Handsontable.Dom.offset(hot);
+          availableWidth = Handsontable.Dom.innerWidth(document.body) - offset.left + window.scrollX;
+          availableHeight = Handsontable.Dom.innerHeight(document.body) - offset.top + window.scrollY;
+
+          hot.style.width = availableWidth + 'px';
+          hot.style.height = availableHeight + 'px';
+        };
+
         hot = new Handsontable(container, {
           startRows: 8,
           startCols: 6,
@@ -82,6 +91,8 @@
             settings['rowidIndex'] = rowid_idx;
             settings['tableName'] = data.table;
             hot.updateSettings(settings);
+
+            calculateSize();
 
             exampleConsole.innerText = "Loaded table '" + data.table + "'";
           });
