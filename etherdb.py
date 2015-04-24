@@ -72,6 +72,11 @@ class EtherDBServer:
 
                 if parsed['type'] == 'change':
                     for change in parsed['data']:
+                        # shouldn't allow SQLi
+                        # XXX TODO check all the other user-provided values
+                        if not change['col'] in cols:
+                            raise HTTPInternalServerError
+
                         if re.search('char|text|clob|blob', coltypes[cols.index(change['col'])], re.IGNORECASE):
                           cmd = "update test set %s=\"%s\" where rowid=%d;" % (change['col'], change['newval'], change['rowid'])
                         else:
