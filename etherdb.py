@@ -54,7 +54,7 @@ class EtherDBServer:
             log.debug(tables)
             table = tables[0]
 
-            cursor.execute('select rowid, * from {0}'.format(table))
+            cursor.execute('select rowid, * from {0} limit 100'.format(table))
 
             cols = tuple([x[0] for x in cursor.description])
 
