@@ -41,7 +41,7 @@ class EtherDBServer:
 
             log.debug('name %s, content-type %s', name, content_type)
 
-            f = open(name[1:])
+            f = open(name[1:], 'rb')
             body = f.read()
             return Response(body=body, content_length=len(body), content_type=content_type, charset='utf-8')
 
