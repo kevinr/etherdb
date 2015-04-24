@@ -72,16 +72,13 @@ class EtherDBServer:
 
                 if parsed['type'] == 'change':
                     for change in parsed['data']:
-                        # not a column header update
-                        if change[0] != 0:
-                            rowid = change[0]
-                            if re.search('char|text|clob|blob', coltypes[change[1]], re.IGNORECASE):
-                              cmd = "update test set %s=\"%s\" where rowid=%d;" % (cols[change[1]], change[3], rowid)
-                            else:
-                              cmd = "update test set %s=%s where rowid=%d;" % (cols[change[1]], change[3], rowid)
-                            log.debug(cmd)
-                            cursor.execute(cmd)
-                            conn.commit()
+                        if re.search('char|text|clob|blob', coltypes[cols.index(change['col'])], re.IGNORECASE):
+                          cmd = "update test set %s=\"%s\" where rowid=%d;" % (change['col'], change['newval'], change['rowid'])
+                        else:
+                          cmd = "update test set %s=%s where rowid=%d;" % (change['col'], change['newval'], change['rowid'])
+                        log.debug(cmd)
+                        cursor.execute(cmd)
+                        conn.commit()
                 
                 body = "{ \"result\": \"ok\" }"
                 return Response(body=body, content_length=len(body), content_type='application/json', charset='utf-8')
