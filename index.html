@@ -51,7 +51,7 @@
           ajax('json/load.json', 'GET', '', function(res) {
             var data = JSON.parse(res.response);
 
-            hot.loadData(data.data);
+            hot.loadData(data.rowdata);
 
             // hide the rowid column
             var rowid_idx = data.cols.indexOf('rowid');

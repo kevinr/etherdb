@@ -64,7 +64,7 @@ class EtherDBServer:
                 for row in cursor:
                     rowdata.append(row)
                 
-                body = json.dumps({'cols': cols, 'data': rowdata})
+                body = json.dumps({'cols': cols, 'rowdata': rowdata})
                 return Response(body=body, content_length=len(body), content_type='application/json', charset='utf-8')
             elif req.method == 'POST':
                 log.debug('POST body: %s', req.body)
