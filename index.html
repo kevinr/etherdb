@@ -47,14 +47,16 @@
           }
         });
 
-        Handsontable.Dom.addEvent(load, 'click', function() {
+        _load = function() {
           ajax('json/load.json', 'GET', '', function(res) {
             var data = JSON.parse(res.response);
 
             hot.loadData(data.data);
             exampleConsole.innerText = 'Data loaded';
           });
-        });
+        };
+
+        Handsontable.Dom.addEvent(load, 'click', _load);
 
         Handsontable.Dom.addEvent(save, 'click', function() {
           // save all cell's data
@@ -78,6 +80,9 @@
             exampleConsole.innerText ='Changes will not be autosaved';
           }
         });
+
+        // and call _load() to start for good measure
+        _load();
       }
     </script>
 
