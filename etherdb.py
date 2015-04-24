@@ -17,9 +17,9 @@ log = getLogger('etherdb')
         
 
 class EtherDBServer:
-    def __init__(self):
+    def __init__(self, filename):
         log.debug('opening the database')
-        self.conn = sqlite3.connect('test.db')
+        self.conn = sqlite3.connect(filename)
     def do_request(self, req):
         name = req.path_info
 
@@ -90,10 +90,10 @@ class EtherDBServer:
 
         raise HTTPNotFound
 
-def do_request(environ, start_response):
+def do_request(filename, environ, start_response):
     req = Request(environ)
     log.debug('%s', repr(req))
-    server = EtherDBServer()
+    server = EtherDBServer(filename)
     try:
         return server.do_request(req)(environ, start_response)
     except HTTPException as err:
@@ -103,4 +103,9 @@ def do_request(environ, start_response):
         raise
 
 if __name__ == "__main__":
-    serve(do_request, host='127.0.0.1', port=8080)
+    if len(sys.argv) < 2:
+        sys.stderr.write("Usage: %s FILE\n" % sys.argv[0])
+        sys.exit(1)
+    filename = sys.argv[1]
+
+    serve(lambda *args: do_request(filename, *args), host='127.0.0.1', port=8080)
