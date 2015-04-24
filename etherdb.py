@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, json, re
+import sys, json, re, sqlite3
 from logging import getLogger, basicConfig
 
 import six
@@ -8,7 +8,8 @@ import six
 from webob import Request, Response
 from webob.exc import HTTPException, HTTPNotFound, HTTPInternalServerError, HTTPSeeOther, HTTPMethodNotAllowed
 
-import sqlite3
+from waitress import serve
+
 
 basicConfig(stream=sys.stderr, level=10)
 
@@ -102,5 +103,4 @@ def do_request(environ, start_response):
         raise
 
 if __name__ == "__main__":
-    from waitress import serve
     serve(do_request, host='127.0.0.1', port=8080)
