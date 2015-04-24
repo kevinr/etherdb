@@ -60,12 +60,11 @@ class EtherDBServer:
             print(coltypes)
 
             if req.method == 'GET':
-                rowdata = [cols]
-
+                rowdata = []
                 for row in cursor:
                     rowdata.append(row)
                 
-                body = json.dumps({'data': rowdata})
+                body = json.dumps({'cols': cols, 'data': rowdata})
                 return Response(body=body, content_length=len(body), content_type='application/json', charset='utf-8')
             elif req.method == 'POST':
                 log.debug('POST body: %s', req.body)

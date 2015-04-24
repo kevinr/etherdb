@@ -27,7 +27,7 @@
           startRows: 8,
           startCols: 6,
           rowHeaders: true,
-          colHeaders: true,
+          colHeaders: false,
           minSpareRows: 1,
           contextMenu: true,
           afterChange: function (change, source) {
@@ -52,6 +52,21 @@
             var data = JSON.parse(res.response);
 
             hot.loadData(data.data);
+
+            // hide the rowid column
+            var rowid_idx = data.cols.indexOf('rowid');
+            var range = new Array(data.cols.length);
+            for (var i = 0; i < range.length; i++) {
+                range[i] = i;
+            }
+            var filtered_cols = data.cols.slice(0, rowid_idx).concat(data.cols.slice(rowid_idx+1))
+            var filtered_range = range.slice(0, rowid_idx).concat(range.slice(rowid_idx+1))
+
+            var settings = hot.getSettings();
+            settings['columns'] = filtered_range.map(function (n) { return {data: n} });
+            settings['colHeaders'] = filtered_cols;
+            hot.updateSettings(settings);
+
             exampleConsole.innerText = 'Data loaded';
           });
         };
