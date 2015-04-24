@@ -80,9 +80,10 @@
             settings['columns'] = filtered_range.map(function (n) { return {data: n} });
             settings['colHeaders'] = filtered_cols;
             settings['rowidIndex'] = rowid_idx;
+            settings['tableName'] = data.table;
             hot.updateSettings(settings);
 
-            exampleConsole.innerText = 'Data loaded';
+            exampleConsole.innerText = "Loaded table '" + data.table + "'";
           });
         };
 
@@ -91,13 +92,17 @@
         Handsontable.Dom.addEvent(save_button, 'click', function() {
           // save all cell's data
           ajax('json/save.json', 'POST', JSON.stringify({type: 'full', data: hot.getData()}), function (res) {
-            var response = JSON.parse(res.response);
+            if (res.status != 200) {
+              exampleConsole.innerText = "Error saving table '" + hot.getSettings().tableName + "': server said " + res.statusText;
+            } else {
+              var response = JSON.parse(res.response);
 
-            if (response.result === 'ok') {
-              exampleConsole.innerText = 'Data saved';
-            }
-            else {
-              exampleConsole.innerText = 'Save error';
+              if (response.result === 'ok') {
+                exampleConsole.innerText = "Saved table '" + hot.getSettings().tableName + "'";
+              }
+              else {
+                exampleConsole.innerText = "Application error saving table '" + hot.getSettings().tableName + "'";
+              }
             }
           });
         });

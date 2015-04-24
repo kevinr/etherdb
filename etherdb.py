@@ -6,7 +6,7 @@ from logging import getLogger, basicConfig
 import six
 
 from webob import Request, Response
-from webob.exc import HTTPException, HTTPNotFound, HTTPInternalServerError, HTTPSeeOther, HTTPMethodNotAllowed
+from webob.exc import HTTPException, HTTPNotFound, HTTPInternalServerError, HTTPSeeOther, HTTPMethodNotAllowed, HTTPNotImplemented
 
 from waitress import serve
 
@@ -49,12 +49,18 @@ class EtherDBServer:
             log.debug('opening the database')
             conn = sqlite3.connect(self.filename)
             cursor = conn.cursor()
-            cursor.execute('select rowid, * from test')
+            cursor.execute("select name from sqlite_master where type='table'")
+            tables = [x[0] for x in cursor.fetchall()]
+            log.debug(tables)
+            table = tables[0]
+
+            cursor.execute('select rowid, * from {0}'.format(table))
 
             cols = tuple([x[0] for x in cursor.description])
 
+            # we need to be able to get the types while the other cursor from which we got the names is still open
             typecursor = conn.cursor()
-            typecmd = 'select ' + ', '.join(['typeof({0})'.format(x) for x in cols]) + ' from test limit 1'
+            typecmd = 'select ' + ', '.join(['typeof({0})'.format(x) for x in cols]) + ' from {0} limit 1'.format(table)
             typecursor.execute(typecmd)
             coltypes = typecursor.fetchone()
             print(coltypes)
@@ -64,7 +70,7 @@ class EtherDBServer:
                 for row in cursor:
                     rowdata.append(row)
                 
-                body = json.dumps({'cols': cols, 'rowdata': rowdata})
+                body = json.dumps({'tables': tables, 'table': table, 'cols': cols, 'rowdata': rowdata})
                 return Response(body=body, content_length=len(body), content_type='application/json', charset='utf-8')
             elif req.method == 'POST':
                 log.debug('POST body: %s', req.body)
@@ -78,12 +84,16 @@ class EtherDBServer:
                             raise HTTPInternalServerError
 
                         if re.search('char|text|clob|blob', coltypes[cols.index(change['col'])], re.IGNORECASE):
-                          cmd = "update test set %s=\"%s\" where rowid=%d;" % (change['col'], change['newval'], change['rowid'])
+                          cmd = "update %s set %s=\"%s\" where rowid=%d;" % (table, change['col'], change['newval'], change['rowid'])
                         else:
-                          cmd = "update test set %s=%s where rowid=%d;" % (change['col'], change['newval'], change['rowid'])
+                          cmd = "update %s set %s=%s where rowid=%d;" % (table, change['col'], change['newval'], change['rowid'])
                         log.debug(cmd)
                         cursor.execute(cmd)
                         conn.commit()
+                elif parsed['type'] == 'full':
+                    raise HTTPNotImplemented
+                else:
+                    raise HTTPNotImplemented
                 
                 body = "{ \"result\": \"ok\" }"
                 return Response(body=body, content_length=len(body), content_type='application/json', charset='utf-8')
