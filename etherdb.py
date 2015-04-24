@@ -18,8 +18,7 @@ log = getLogger('etherdb')
 
 class EtherDBServer:
     def __init__(self, filename):
-        log.debug('opening the database')
-        self.conn = sqlite3.connect(filename)
+        self.filename = filename
     def do_request(self, req):
         name = req.path_info
 
@@ -47,12 +46,14 @@ class EtherDBServer:
             return Response(body=body, content_length=len(body), content_type=content_type, charset='utf-8')
 
         elif re.search('^/json/(?:load|save).json$', name):
-            cursor = self.conn.cursor()
+            log.debug('opening the database')
+            conn = sqlite3.connect(self.filename)
+            cursor = conn.cursor()
             cursor.execute('select rowid, * from test')
 
             cols = tuple([x[0] for x in cursor.description])
 
-            typecursor = self.conn.cursor()
+            typecursor = conn.cursor()
             typecmd = 'select ' + ', '.join(['typeof({0})'.format(x) for x in cols]) + ' from test limit 1'
             typecursor.execute(typecmd)
             coltypes = typecursor.fetchone()
@@ -81,7 +82,7 @@ class EtherDBServer:
                               cmd = "update test set %s=%s where rowid=%d;" % (cols[change[1]], change[3], rowid)
                             log.debug(cmd)
                             cursor.execute(cmd)
-                            self.conn.commit()
+                            conn.commit()
                 
                 body = "{ \"result\": \"ok\" }"
                 return Response(body=body, content_length=len(body), content_type='application/json', charset='utf-8')
